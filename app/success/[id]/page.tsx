@@ -12,13 +12,56 @@ export default function SuccessPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [leadData, setLeadData] = useState<any>(null);
   const reportUrl = leadData?.pdfUrl || '';
+  const canDownloadReport = Boolean(reportUrl || leadData?.pdfBase64);
+
+  const getReportFileName = () => {
+    if (leadData?.fileName) return leadData.fileName;
+
+    const company = String(leadData?.company || 'company')
+      .replace(/[^a-z0-9_-]+/gi, '_')
+      .replace(/^_+|_+$/g, '')
+      .toLowerCase();
+
+    return `${company || 'company'}_audit.pdf`;
+  };
+
+  const downloadReport = () => {
+    if (!canDownloadReport) return;
+
+    if (leadData?.pdfBase64 || reportUrl.startsWith('data:application/pdf;base64,')) {
+      const base64 = leadData?.pdfBase64 || reportUrl.split(',')[1];
+      const byteCharacters = atob(base64);
+      const byteNumbers = Array.from(byteCharacters, (character) => character.charCodeAt(0));
+      const blob = new Blob([new Uint8Array(byteNumbers)], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+
+      link.href = url;
+      link.download = getReportFileName();
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      return;
+    }
+
+    window.open(reportUrl, '_blank', 'noopener,noreferrer');
+  };
 
   useEffect(() => {
     const fetchLead = async () => {
       try {
+        const savedLead = sessionStorage.getItem(`infiq-lead-${leadId}`);
+        if (savedLead) {
+          setLeadData(JSON.parse(savedLead));
+          return;
+        }
+
         const response = await fetch(`/api/leads/${leadId}`);
         const data = await response.json();
-        setLeadData(data.data);
+        if (data.success && data.data) {
+          setLeadData(data.data);
+        }
       } catch (error) {
         console.error('Failed to fetch lead:', error);
       } finally {
@@ -85,34 +128,32 @@ export default function SuccessPage() {
               </div>
             </div>
 
-            {reportUrl && (
+            {canDownloadReport && (
               <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
                 <p className="text-sm text-gray-300 mb-2">Your PDF report is ready:</p>
-                <a
-                  href={reportUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={downloadReport}
                   className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
                 >
                   <Download className="w-4 h-4" />
                   Download Report
-                </a>
+                </button>
               </div>
             )}
           </motion.div>
         )}
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <a
-            href={reportUrl || '#'}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-disabled={!reportUrl}
-            className={`px-8 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all flex items-center justify-center gap-2 ${!reportUrl ? 'pointer-events-none opacity-50' : ''}`}
+          <button
+            type="button"
+            onClick={downloadReport}
+            disabled={!canDownloadReport}
+            className={`px-8 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all flex items-center justify-center gap-2 ${!canDownloadReport ? 'pointer-events-none opacity-50' : ''}`}
           >
             <Download className="w-5 h-5" />
             Download Report
-          </a>
+          </button>
           <button className="px-8 py-3 border border-gray-600 hover:border-gray-400 rounded-lg font-semibold transition-all flex items-center justify-center gap-2">
             <Share2 className="w-5 h-5" />
             Share Report

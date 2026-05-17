@@ -181,6 +181,15 @@ export default function SubmitPage() {
 
       if (!dbResponse.ok) throw new Error('Database save failed');
       const leadData = await dbResponse.json();
+      sessionStorage.setItem(
+        `infiq-lead-${leadData.data.id}`,
+        JSON.stringify({
+          ...leadData.data,
+          pdfUrl: pdfData.data.pdfUrl,
+          pdfBase64: pdfData.data.pdfBase64,
+          fileName: pdfData.data.fileName,
+        })
+      );
       updateWorkflow('Database Save', 'complete', 'Complete!');
 
       toast.success('Lead submitted successfully!');
