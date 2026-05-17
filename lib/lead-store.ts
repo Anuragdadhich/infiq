@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 
 export interface StoredLead {
@@ -15,7 +16,9 @@ export interface StoredLead {
   emailSentAt?: string | null;
 }
 
-const dataDir = path.join(process.cwd(), '.data');
+const dataDir = process.env.VERCEL
+  ? path.join(os.tmpdir(), 'infiq-data')
+  : path.join(process.cwd(), '.data');
 const dataFile = path.join(dataDir, 'leads.json');
 
 function ensureStore() {

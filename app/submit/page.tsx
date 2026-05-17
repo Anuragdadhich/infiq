@@ -128,6 +128,8 @@ export default function SubmitPage() {
           name: data.fullName,
           company: data.company,
           pdfUrl: pdfData.data.pdfUrl,
+          pdfBase64: pdfData.data.pdfBase64,
+          fileName: pdfData.data.fileName,
         }),
       });
 

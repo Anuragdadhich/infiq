@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jsPDF } from 'jspdf';
-import * as fs from 'fs';
-import * as path from 'path';
 
 export const runtime = 'nodejs';
 
@@ -415,21 +413,14 @@ export async function POST(request: NextRequest) {
       .replace(/^_+|_+$/g, '')
       .toLowerCase();
     const fileName = `${safeCompanyName || 'company'}_audit_${Date.now()}.pdf`;
-    const filePath = path.join(process.cwd(), 'public', 'reports', fileName);
-
-    const dir = path.dirname(filePath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-
-    fs.writeFileSync(filePath, pdfBuffer);
-
-    const pdfUrl = `/reports/${fileName}`;
+    const pdfBase64 = pdfBuffer.toString('base64');
+    const pdfUrl = `data:application/pdf;base64,${pdfBase64}`;
 
     return NextResponse.json({
       success: true,
       data: {
         pdfUrl,
+        pdfBase64,
         fileId: fileName,
         fileName,
       },

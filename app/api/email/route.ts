@@ -108,13 +108,28 @@ function getEmailTemplate(name: string, company: string, pdfUrl: string): string
   `.trim();
 }
 
-async function sendEmailWithResend(to: string, name: string, company: string, pdfUrl: string) {
+async function sendEmailWithResend(
+  to: string,
+  name: string,
+  company: string,
+  pdfUrl: string,
+  pdfBase64?: string,
+  fileName = 'business-audit.pdf'
+) {
   if (!RESEND_API_KEY) {
     console.warn('RESEND_API_KEY not configured, skipping email');
     return { success: true, message: 'Email sending skipped - API key not configured' };
   }
 
   const html = getEmailTemplate(name, company, pdfUrl);
+  const attachments = pdfBase64
+    ? [
+        {
+          filename: fileName,
+          content: pdfBase64,
+        },
+      ]
+    : undefined;
 
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -128,6 +143,7 @@ async function sendEmailWithResend(to: string, name: string, company: string, pd
       subject: `Your AI Business Audit for ${company} - InfiQ`,
       html,
       reply_to: 'support@infiq.io',
+      attachments,
     }),
   });
 
@@ -142,7 +158,7 @@ async function sendEmailWithResend(to: string, name: string, company: string, pd
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { to, name, company, pdfUrl } = body;
+    const { to, name, company, pdfUrl, pdfBase64, fileName } = body;
 
     if (!to || !name || !company || !pdfUrl) {
       return NextResponse.json(
@@ -151,8 +167,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const absolutePdfUrl = toAbsoluteUrl(pdfUrl, request);
-    const result = await sendEmailWithResend(to, name, company, absolutePdfUrl);
+    const absolutePdfUrl = pdfUrl.startsWith('data:')
+      ? pdfUrl
+      : toAbsoluteUrl(pdfUrl, request);
+    const result = await sendEmailWithResend(to, name, company, absolutePdfUrl, pdfBase64, fileName);
 
     return NextResponse.json({
       success: true,
