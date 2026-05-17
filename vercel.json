@@ -1,0 +1,51 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "devCommand": "npm run dev",
+  "env": [
+    {
+      "source": "GEMINI_API_KEY",
+      "description": "Google Gemini API Key"
+    },
+    {
+      "source": "OPENAI_API_KEY",
+      "description": "OpenAI API Key"
+    },
+    {
+      "source": "RESEND_API_KEY",
+      "description": "Resend Email API Key"
+    },
+    {
+      "source": "FROM_EMAIL",
+      "description": "From Email Address"
+    },
+    {
+      "source": "GOOGLE_SHEETS_ID",
+      "description": "Google Sheets ID"
+    },
+    {
+      "source": "GOOGLE_DRIVE_FOLDER_ID",
+      "description": "Google Drive Folder ID"
+    },
+    {
+      "source": "GOOGLE_SERVICE_ACCOUNT_JSON",
+      "description": "Google Service Account JSON"
+    },
+    {
+      "source": "DATABASE_URL",
+      "description": "Database Connection URL"
+    },
+    {
+      "source": "NEXT_PUBLIC_SUPABASE_URL",
+      "description": "Supabase Project URL"
+    },
+    {
+      "source": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "description": "Supabase Anon Key"
+    },
+    {
+      "source": "SUPABASE_SERVICE_ROLE_KEY",
+      "description": "Supabase Service Role Key"
+    }
+  ]
+}
