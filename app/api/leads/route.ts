@@ -6,12 +6,14 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { lead, pdfUrl, auditData, emailSent } = body;
+    const { lead, pdfUrl, pdfBase64, fileName, auditData, emailSent } = body;
 
     const newLead = {
       id: Math.random().toString(36).substring(7),
       ...lead,
       pdfUrl,
+      pdfBase64,
+      fileName,
       auditData,
       createdAt: new Date().toISOString(),
       emailSentAt: emailSent ? new Date().toISOString() : null,

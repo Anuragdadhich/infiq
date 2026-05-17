@@ -11,6 +11,8 @@ export interface StoredLead {
   industry: string;
   additionalNotes?: string;
   pdfUrl: string;
+  pdfBase64?: string;
+  fileName?: string;
   auditData?: unknown;
   createdAt: string;
   emailSentAt?: string | null;

@@ -174,6 +174,8 @@ export default function SubmitPage() {
         body: JSON.stringify({
           lead: data,
           pdfUrl: pdfData.data.pdfUrl,
+          pdfBase64: pdfData.data.pdfBase64,
+          fileName: pdfData.data.fileName,
           auditData,
           emailSent,
         }),

@@ -11,8 +11,15 @@ export default function SuccessPage() {
   const leadId = params.id as string;
   const [isLoading, setIsLoading] = useState(true);
   const [leadData, setLeadData] = useState<any>(null);
+  const [downloadError, setDownloadError] = useState('');
   const reportUrl = leadData?.pdfUrl || '';
-  const canDownloadReport = Boolean(reportUrl || leadData?.pdfBase64);
+  const getPdfBase64 = () => {
+    if (leadData?.pdfBase64) return leadData.pdfBase64;
+
+    const match = reportUrl.match(/^data:application\/pdf(?:;[^,]*)?;base64,(.+)$/);
+    return match?.[1] || '';
+  };
+  const canDownloadReport = Boolean(getPdfBase64());
 
   const getReportFileName = () => {
     if (leadData?.fileName) return leadData.fileName;
@@ -26,10 +33,15 @@ export default function SuccessPage() {
   };
 
   const downloadReport = () => {
-    if (!canDownloadReport) return;
+    setDownloadError('');
 
-    if (leadData?.pdfBase64 || reportUrl.startsWith('data:application/pdf;base64,')) {
-      const base64 = leadData?.pdfBase64 || reportUrl.split(',')[1];
+    try {
+      const base64 = getPdfBase64();
+      if (!base64) {
+        setDownloadError('This report is missing download data. Please generate a new audit.');
+        return;
+      }
+
       const byteCharacters = atob(base64);
       const byteNumbers = Array.from(byteCharacters, (character) => character.charCodeAt(0));
       const blob = new Blob([new Uint8Array(byteNumbers)], { type: 'application/pdf' });
@@ -41,11 +53,11 @@ export default function SuccessPage() {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      URL.revokeObjectURL(url);
-      return;
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+      console.error('Failed to download report:', error);
+      setDownloadError('Unable to download this report. Please generate a new audit.');
     }
-
-    window.open(reportUrl, '_blank', 'noopener,noreferrer');
   };
 
   useEffect(() => {
@@ -139,6 +151,7 @@ export default function SuccessPage() {
                   <Download className="w-4 h-4" />
                   Download Report
                 </button>
+                {downloadError && <p className="text-xs text-red-300 mt-2">{downloadError}</p>}
               </div>
             )}
           </motion.div>
